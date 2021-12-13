@@ -1,0 +1,92 @@
+# 常见的log4j2利用exp以及变形，无误报
+
+alert ip any any -> any any (msg:"SC JNDI Injection RCE Attempt"; flow:to_server,established; content:"jndi"; nocase; pcre:"/(\$|%24)(\(|\[|{|%5b|%7B).{0,10}jndi.{0,10}(:|%3a).{0,10}(\/|%2f){2}.{0,30}\..{0,30}(\)|\]|}|%5d|%7D)/i"; sid:7700307; rev:12;)
+
+alert ip any any -> any any (msg:"SC JNDI Injection RCE Attempt M1"; flow:to_server,established; content:"%24%7B%3A"; nocase; pcre:"/(\$|%24)({|%7B).{0,30}(\$|%24)({|%7B)(:|%3A){1,}-[jndilaprm]{1,4}.{0,30}(\/|%2F){2}.{0,30}\..{0,30}(}|%7D)/i"; sid:7700315; rev:4;)
+
+alert ip any any -> any any (msg:"SC JNDI Injection RCE Attempt M2"; flow:to_server,established; content:"${:"; nocase; pcre:"/(\$|%24)({|%7B).{0,30}(\$|%24)({|%7B)(:|%3A){1,}-[jndilaprm]{1,4}.{0,30}(\/|%2F){2}.{0,30}\..{0,30}(}|%7D)/i"; sid:7700316; rev:4;)
+
+alert ip any any -> any any (msg:"SC JNDI Injection RCE Attempt M3"; flow:to_server,established; content:"lower"; nocase; pcre:"/(\$|%24)({|%7B).{0,30}(\$|%24)({|%7B)(lower|upper)(:|%3A)[jndilaprm]{1,4}.{0,30}(\/|%2F){2}.{0,30}\..{0,30}(}|%7D)/i"; sid:7700317; rev:2;)
+
+alert ip any any -> any any (msg:"SC JNDI Injection RCE Attempt M4"; flow:to_server,established; content:"upper"; nocase; pcre:"/(\$|%24)({|%7B).{0,30}(\$|%24)({|%7B)(lower|upper)(:|%3A)[jndilaprm]{1,4}.{0,30}(\/|%2F){2}.{0,30}\..{0,30}(}|%7D)/i"; sid:7700318; rev:2;)
+
+# 通过LDAP协议搜索恶意对象，利用成功后连接伪造的LDAP服务请求恶意对象
+alert tcp any any -> any any (msg:"SC LDAP Request Search Suspicious Object"; flow:to_server,established; content:"|30 49 02 01|"; depth:4; content:"|63 27|"; depth:2; offset:5; pcre:"/exploit|backdoor|shell|beacon|fuck|shit|fck|fuckyou|test|exp|poc|justfor|hack/i"; sid:7700313; rev:3;)
+
+# 远程下载.class文件，LDAP重定向到恶意HTTP资源，远程下载class木马
+
+alert http any any -> any any (msg:"SC HTTP Request Java Class Download Attempt"; flow:to_server,established; content:"GET"; http_method; content:"User-Agent|3A 20|Java"; nocase; pcre:"/\/.*\.class$/iU"; sid:7700308; rev:3;)
+
+# ETP规则集，效果暂未验证
+
+alert http any any -> [$HOME_NET,$HTTP_SERVERS] any (msg:"ET EXPLOIT Apache log4j RCE Attempt (http ldap) (CVE-2021-44228)"; flow:established,to_server; content:"|24 7b|jndi|3a|ldap|3a 2f 2f|"; nocase; fast_pattern; reference:url,lunasec.io/docs/blog/log4j-zero-day/; reference:cve,2021-44228; classtype:attempted-admin; sid:2034647; rev:1; metadata:attack_target Server, created_at 2021_12_10, cve CVE_2021_44228, deployment Perimeter, deployment Internal, former_category EXPLOIT, signature_severity Major, tag Exploit, updated_at 2021_12_10;)
+
+alert http any any -> [$HOME_NET,$HTTP_SERVERS] any (msg:"ET EXPLOIT Apache log4j RCE Attempt (http rmi) (CVE-2021-44228)"; flow:established,to_server; content:"|24 7b|jndi|3a|rmi|3a 2f 2f|"; nocase; fast_pattern; reference:url,lunasec.io/docs/blog/log4j-zero-day/; reference:cve,2021-44228; classtype:attempted-admin; sid:2034648; rev:1; metadata:attack_target Server, created_at 2021_12_10, cve CVE_2021_44228, deployment Perimeter, deployment Internal, former_category EXPLOIT, signature_severity Major, tag Exploit, updated_at 2021_12_10;)
+
+alert tcp any any -> [$HOME_NET,$HTTP_SERVERS] any (msg:"ET EXPLOIT Apache log4j RCE Attempt (tcp ldap) (CVE-2021-44228)"; flow:established,to_server; content:"|24 7b|jndi|3a|ldap|3a 2f 2f|"; nocase; fast_pattern; reference:url,lunasec.io/docs/blog/log4j-zero-day/; reference:cve,2021-44228; classtype:attempted-admin; sid:2034649; rev:1; metadata:attack_target Server, created_at 2021_12_10, cve CVE_2021_44228, deployment Perimeter, deployment Internal, former_category EXPLOIT, signature_severity Major, tag Exploit, updated_at 2021_12_10;)
+
+alert tcp any any -> [$HOME_NET,$HTTP_SERVERS] any (msg:"ET EXPLOIT Apache log4j RCE Attempt (tcp rmi) (CVE-2021-44228)"; flow:established,to_server; content:"|24 7b|jndi|3a|rmi|3a 2f 2f|"; nocase; fast_pattern; reference:url,lunasec.io/docs/blog/log4j-zero-day/; reference:cve,2021-44228; classtype:attempted-admin; sid:2034650; rev:1; metadata:attack_target Server, created_at 2021_12_10, cve CVE_2021_44228, deployment Perimeter, deployment Internal, former_category EXPLOIT, signature_severity Major, tag Exploit, updated_at 2021_12_10;)
+
+alert udp any any -> [$HOME_NET,$HTTP_SERVERS] any (msg:"ET EXPLOIT Apache log4j RCE Attempt (udp ldap) (CVE-2021-44228)"; content:"|24 7b|jndi|3a|ldap|3a 2f 2f|"; nocase; fast_pattern; reference:url,lunasec.io/docs/blog/log4j-zero-day/; reference:cve,2021-44228; classtype:attempted-admin; sid:2034651; rev:2; metadata:attack_target Server, created_at 2021_12_10, cve CVE_2021_44228, deployment Perimeter, deployment Internal, former_category EXPLOIT, signature_severity Major, tag Exploit, updated_at 2021_12_10;)
+
+alert udp any any -> [$HOME_NET,$HTTP_SERVERS] any (msg:"ET EXPLOIT Apache log4j RCE Attempt (udp rmi) (CVE-2021-44228)"; content:"|24 7b|jndi|3a|rmi|3a 2f 2f|"; nocase; fast_pattern; reference:url,lunasec.io/docs/blog/log4j-zero-day/; reference:cve,2021-44228; classtype:attempted-admin; sid:2034652; rev:2; metadata:attack_target Server, created_at 2021_12_10, cve CVE_2021_44228, deployment Perimeter, deployment Internal, former_category EXPLOIT, signature_severity Major, tag Exploit, updated_at 2021_12_10;)
+
+alert udp any any -> [$HOME_NET,$HTTP_SERVERS] any (msg:"ET EXPLOIT Apache log4j RCE Attempt (udp dns) (CVE-2021-44228)"; content:"|24 7b|jndi|3a|dns|3a 2f 2f|"; nocase; fast_pattern; reference:url,lunasec.io/docs/blog/log4j-zero-day/; reference:cve,2021-44228; classtype:attempted-admin; sid:2034653; rev:2; metadata:attack_target Server, created_at 2021_12_10, cve CVE_2021_44228, deployment Perimeter, deployment Internal, former_category EXPLOIT, signature_severity Major, tag Exploit, updated_at 2021_12_10;)
+
+alert tcp any any -> [$HOME_NET,$HTTP_SERVERS] any (msg:"ET EXPLOIT Apache log4j RCE Attempt (tcp dns) (CVE-2021-44228)"; flow:established,to_server; content:"|24 7b|jndi|3a|dns|3a 2f 2f|"; nocase; fast_pattern; reference:url,lunasec.io/docs/blog/log4j-zero-day/; reference:cve,2021-44228; classtype:attempted-admin; sid:2034654; rev:2; metadata:attack_target Server, created_at 2021_12_10, cve CVE_2021_44228, deployment Perimeter, deployment Internal, former_category EXPLOIT, signature_severity Major, tag Exploit, updated_at 2021_12_10;)
+
+alert http any any -> [$HOME_NET,$HTTP_SERVERS] any (msg:"ET EXPLOIT Apache log4j RCE Attempt (http dns) (CVE-2021-44228)"; flow:established,to_server; content:"|24 7b|jndi|3a|dns|3a 2f 2f|"; nocase; fast_pattern; reference:url,lunasec.io/docs/blog/log4j-zero-day/; reference:cve,2021-44228; classtype:attempted-admin; sid:2034655; rev:2; metadata:attack_target Server, created_at 2021_12_10, cve CVE_2021_44228, deployment Perimeter, deployment Internal, former_category EXPLOIT, signature_severity Major, tag Exploit, updated_at 2021_12_10;)
+
+alert udp any any -> [$HOME_NET,$HTTP_SERVERS] any (msg:"ET EXPLOIT Apache log4j RCE Attempt (udp ldaps) (CVE-2021-44228)"; content:"|24 7b|jndi|3a|ldaps|3a 2f 2f|"; nocase; fast_pattern; reference:url,lunasec.io/docs/blog/log4j-zero-day/; reference:cve,2021-44228; classtype:attempted-admin; sid:2034656; rev:2; metadata:attack_target Server, created_at 2021_12_10, cve CVE_2021_44228, deployment Perimeter, deployment Internal, former_category EXPLOIT, signature_severity Major, tag Exploit, updated_at 2021_12_10;)
+
+alert tcp any any -> [$HOME_NET,$HTTP_SERVERS] any (msg:"ET EXPLOIT Apache log4j RCE Attempt (tcp ldaps) (CVE-2021-44228)"; flow:established,to_server; content:"|24 7b|jndi|3a|ldaps|3a 2f 2f|"; nocase; fast_pattern; reference:url,lunasec.io/docs/blog/log4j-zero-day/; reference:cve,2021-44228; classtype:attempted-admin; sid:2034657; rev:2; metadata:attack_target Server, created_at 2021_12_10, cve CVE_2021_44228, deployment Perimeter, deployment Internal, former_category EXPLOIT, signature_severity Major, tag Exploit, updated_at 2021_12_10;)
+
+alert http any any -> [$HOME_NET,$HTTP_SERVERS] any (msg:"ET EXPLOIT Apache log4j RCE Attempt (http ldaps) (CVE-2021-44228)"; flow:established,to_server; content:"|24 7b|jndi|3a|ldaps|3a 2f 2f|"; nocase; fast_pattern; reference:url,lunasec.io/docs/blog/log4j-zero-day/; reference:cve,2021-44228; classtype:attempted-admin; sid:2034658; rev:2; metadata:attack_target Server, created_at 2021_12_10, cve CVE_2021_44228, deployment Perimeter, deployment Internal, former_category EXPLOIT, signature_severity Major, tag Exploit, updated_at 2021_12_10;)
+
+alert tcp any any -> [$HOME_NET,$HTTP_SERVERS] any (msg:"ET EXPLOIT Apache log4j RCE Attempt - lower/upper TCP Bypass (CVE-2021-44228)"; flow:established,to_server; content:"|24 7b|jndi|3a|"; nocase; fast_pattern; pcre:"/^(l|r|d|\x24\x7b(lower|upper)\x3a(l|r|d)\x7d)(d|n|m|\x24\x7b(lower|upper)\x3a(d|n|m)\x7d)(a|i|s|\x24\x7b(lower|upper)\x3a(a|i|s)\x7d)(p|\x24\x7b(lower|upper)\x3a(p)\x7d)/Ri"; content:"|3a 2f 2f|"; distance:0; reference:cve,2021-44228; classtype:attempted-admin; sid:2034659; rev:1; metadata:attack_target Server, created_at 2021_12_11, cve CVE_2021_44228, deployment Perimeter, deployment Internal, former_category EXPLOIT, signature_severity Major, tag Exploit, updated_at 2021_12_11;)
+
+alert udp any any -> [$HOME_NET,$HTTP_SERVERS] any (msg:"ET EXPLOIT Apache log4j RCE Attempt - lower/upper UDP Bypass (CVE-2021-44228)"; content:"|24 7b|jndi|3a|"; nocase; fast_pattern; pcre:"/^(l|r|d|\x24\x7b(lower|upper)\x3a(l|r|d)\x7d)(d|n|m|\x24\x7b(lower|upper)\x3a(d|n|m)\x7d)(a|i|s|\x24\x7b(lower|upper)\x3a(a|i|s)\x7d)(p|\x24\x7b(lower|upper)\x3a(p)\x7d)/Ri"; content:"|3a 2f 2f|"; distance:0; reference:cve,2021-44228; classtype:attempted-admin; sid:2034660; rev:2; metadata:attack_target Server, created_at 2021_12_11, cve CVE_2021_44228, deployment Perimeter, deployment Internal, former_category EXPLOIT, signature_severity Major, tag Exploit, updated_at 2021_12_11;)
+
+alert tcp any any -> [$HOME_NET,$HTTP_SERVERS] any (msg:"ET HUNTING Possible Apache log4j RCE Attempt - Any Protocol (CVE-2021-44228)"; flow:established,to_server; content:"|24 7b|jndi|3a|"; nocase; fast_pattern; content:"|3a 2f 2f|"; distance:0; within:20; reference:cve,2021-44228; classtype:misc-activity; sid:2034661; rev:1; metadata:created_at 2021_12_11, cve CVE_2021_44228, former_category HUNTING, updated_at 2021_12_11;)
+
+alert udp any any -> [$HOME_NET,$HTTP_SERVERS] any (msg:"ET HUNTING Possible Apache log4j RCE Attempt - Any Protocol (CVE-2021-44228)"; content:"|24 7b|jndi|3a|"; nocase; fast_pattern; content:"|3a 2f 2f|"; distance:0; within:20; reference:cve,2021-44228; classtype:misc-activity; sid:2034662; rev:2; metadata:created_at 2021_12_11, cve CVE_2021_44228, former_category HUNTING, updated_at 2021_12_11;)
+
+alert tcp any any -> [$HOME_NET,$HTTP_SERVERS] any (msg:"ET HUNTING Possible Apache log4j RCE Attempt - Any Protocol upper Bypass (CVE-2021-44228)"; flow:established,to_server; content:"|24 7b|jndi|3a|"; nocase; fast_pattern; content:"|24 7b|upper|3a|"; distance:0; reference:cve,2021-44228; classtype:misc-activity; sid:2034663; rev:1; metadata:created_at 2021_12_11, cve CVE_2021_44228, former_category HUNTING, updated_at 2021_12_11;)
+
+alert udp any any -> [$HOME_NET,$HTTP_SERVERS] any (msg:"ET HUNTING Possible Apache log4j RCE Attempt - Any Protocol upper Bypass (CVE-2021-44228)"; content:"|24 7b|jndi|3a|"; nocase; fast_pattern; content:"|24 7b|upper|3a|"; distance:0; reference:cve,2021-44228; classtype:misc-activity; sid:2034664; rev:1; metadata:created_at 2021_12_11, cve CVE_2021_44228, former_category HUNTING, updated_at 2021_12_11;)
+
+alert tcp any any -> [$HOME_NET,$HTTP_SERVERS] any (msg:"ET HUNTING Possible Apache log4j RCE Attempt - Any Protocol lower Bypass (CVE-2021-44228)"; flow:established,to_server; content:"|24 7b|jndi|3a|"; nocase; fast_pattern; content:"|24 7b|lower|3a|"; distance:0; reference:cve,2021-44228; classtype:misc-activity; sid:2034665; rev:1; metadata:created_at 2021_12_11, cve CVE_2021_44228, former_category HUNTING, updated_at 2021_12_11;)
+
+alert udp any any -> [$HOME_NET,$HTTP_SERVERS] any (msg:"ET HUNTING Possible Apache log4j RCE Attempt - Any Protocol lower Bypass (CVE-2021-44228)"; content:"|24 7b|jndi|3a|"; nocase; fast_pattern; content:"|24 7b|lower|3a|"; distance:0; reference:cve,2021-44228; classtype:misc-activity; sid:2034666; rev:1; metadata:created_at 2021_12_11, cve CVE_2021_44228, former_category HUNTING, updated_at 2021_12_11;)
+
+alert udp any any -> [$HOME_NET,$HTTP_SERVERS] any (msg:"ET EXPLOIT Apache log4j RCE Attempt (udp iiop) (CVE-2021-44228)"; content:"|24 7b|jndi|3a|iiop|3a 2f 2f|"; nocase; fast_pattern; reference:url,lunasec.io/docs/blog/log4j-zero-day/; reference:cve,2021-44228; classtype:attempted-admin; sid:2034667; rev:2; metadata:attack_target Server, created_at 2021_12_11, cve CVE_2021_44228, deployment Perimeter, deployment Internal, former_category EXPLOIT, signature_severity Major, tag Exploit, updated_at 2021_12_11;)
+
+alert tcp any any -> [$HOME_NET,$HTTP_SERVERS] any (msg:"ET EXPLOIT Apache log4j RCE Attempt (tcp iiop) (CVE-2021-44228)"; flow:established,to_server; content:"|24 7b|jndi|3a|iiop|3a 2f 2f|"; nocase; fast_pattern; reference:url,lunasec.io/docs/blog/log4j-zero-day/; reference:cve,2021-44228; classtype:attempted-admin; sid:2034668; rev:2; metadata:attack_target Server, created_at 2021_12_11, cve CVE_2021_44228, deployment Perimeter, deployment Internal, former_category EXPLOIT, signature_severity Major, tag Exploit, updated_at 2021_12_11;)
+
+alert tcp any any -> [$HOME_NET,$HTTP_SERVERS] any (msg:"ET EXPLOIT Apache log4j RCE Attempt - 2021/12/12 Obfuscation Observed M1 (CVE-2021-44228)"; flow:established,to_server; content:"|24 7b|"; fast_pattern; pcre:"/^(j|\x24\x7b(lower|upper)\x3aj\x7d|\x24\x7b\x3a\x3a\-j\x7d)(n|\x24\x7b(lower|upper)\x3an\x7d|\x24\x7b\x3a\x3a\-n\x7d)/Ri"; content:"|3a|"; distance:0; pcre:"/^(l|r|d|\x24\x7b(lower|upper)\x3a(l|r|d)\x7d|\x24\x7b\x3a\x3a\-(l|r|d)\x7d)(d|n|m|\x24\x7b(lower|upper)\x3a(d|n|m)\x7d|\x24\x7b\x3a\x3a\-(d|n|m)\x7d)(a|i|s|\x24\x7b(lower|upper)\x3a(a|i|s)\x7d|\x24\x7b\x3a\x3a\-(a|i|s)\x7d)(p|\x24\x7b(lower|upper)\x3a(p)\x7d)/Ri"; content:"|3a 2f 2f|"; distance:0; reference:cve,2021-44228; classtype:attempted-admin; sid:2034671; rev:1; metadata:attack_target Server, created_at 2021_12_12, cve CVE_2021_44228, deployment Perimeter, deployment Internal, former_category EXPLOIT, signature_severity Major, tag Exploit, updated_at 2021_12_12;)
+
+alert udp any any -> [$HOME_NET,$HTTP_SERVERS] any (msg:"ET EXPLOIT Apache log4j RCE Attempt - 2021/12/12 Obfuscation Observed M1 (CVE-2021-44228)"; content:"|24 7b|"; fast_pattern; pcre:"/^(j|\x24\x7b(lower|upper)\x3aj\x7d|\x24\x7b\x3a\x3a\-j\x7d)(n|\x24\x7b(lower|upper)\x3an\x7d|\x24\x7b\x3a\x3a\-n\x7d)/Ri"; content:"|3a|"; distance:0; pcre:"/^(l|r|d|\x24\x7b(lower|upper)\x3a(l|r|d)\x7d|\x24\x7b\x3a\x3a\-(l|r|d)\x7d)(d|n|m|\x24\x7b(lower|upper)\x3a(d|n|m)\x7d|\x24\x7b\x3a\x3a\-(d|n|m)\x7d)(a|i|s|\x24\x7b(lower|upper)\x3a(a|i|s)\x7d|\x24\x7b\x3a\x3a\-(a|i|s)\x7d)(p|\x24\x7b(lower|upper)\x3a(p)\x7d)/Ri"; content:"|3a 2f 2f|"; distance:0; reference:cve,2021-44228; classtype:attempted-admin; sid:2034672; rev:1; metadata:attack_target Server, created_at 2021_12_12, cve CVE_2021_44228, deployment Perimeter, deployment Internal, former_category EXPLOIT, signature_severity Major, tag Exploit, updated_at 2021_12_12;)
+
+alert tcp any any -> [$HOME_NET,$HTTP_SERVERS] any (msg:"ET EXPLOIT Possible Apache log4j RCE Attempt - 2021/12/12 Obfuscation Observed M2 (CVE-2021-44228)"; flow:established,to_server; content:"|24 7b|"; content:"|24 7b 3a 3a|"; distance:0; within:300; fast_pattern; reference:cve,2021-44228; classtype:attempted-admin; sid:2034673; rev:1; metadata:attack_target Server, created_at 2021_12_12, cve CVE_2021_44228, deployment Perimeter, deployment Internal, former_category EXPLOIT, signature_severity Major, tag Exploit, updated_at 2021_12_12;)
+
+alert udp any any -> [$HOME_NET,$HTTP_SERVERS] any (msg:"ET EXPLOIT Possible Apache log4j RCE Attempt - 2021/12/12 Obfuscation Observed M2 (CVE-2021-44228)"; content:"|24 7b|"; content:"|24 7b 3a 3a|"; distance:0; within:300; fast_pattern; reference:cve,2021-44228; classtype:attempted-admin; sid:2034674; rev:1; metadata:attack_target Server, created_at 2021_12_12, cve CVE_2021_44228, deployment Perimeter, deployment Internal, former_category EXPLOIT, signature_severity Major, tag Exploit, updated_at 2021_12_12;)
+
+# secureworks规则集
+alert http $EXTERNAL_NET any -> $HOME_NET any (msg:"SCWX 59180 VID169803 Apache Log4j JNDI Lookup Remote Code Execution Attempt - Inbound (CVE-2021-44228)"; flow:established, to_server; content:"T"; offset:2; depth:2; http_method; content:"|24 7B|jndi|3A|ldap|3A 2F 2F|"; fast_pattern; tag:session,4,packets; metadata:rule_source secureworks,swid 59180,priority medium,updated_at 2021-12-10,created_at 2021-12-10,vid 169803,filename sw.rules,capec_id 248,protocols tcp,protocols http,mitre_attack T1190,cve 2021-44228,cwe_id 74,cwe_id 502,cvss_v2_base 7.5,cvss_v2_temporal 6.5,cvss_v3_base 10.0,cvss_v3_temporal 9.5,hostile src_ip,attack_target server,attack_target http-server,portal_vid 326315; priority:2; rev:2; sid:20059180;)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
