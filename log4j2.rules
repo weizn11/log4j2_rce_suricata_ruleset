@@ -13,7 +13,7 @@ alert ip any any -> any any (msg:"SC JNDI Injection RCE Attempt M4"; flow:to_ser
 # 通过LDAP协议搜索恶意对象，利用成功后连接伪造的LDAP服务请求恶意对象，两个利用工具的监控：JNDIExploit，marshalsec
 alert tcp any any -> any any (msg:"SC LDAP Request Search Suspicious Object Possible Exploit kit (JNDIExploit)"; flow:to_server,established; content:"|30|"; depth:1; content:"|02 01 02 63|"; depth:8; offset:1; content:"objectClass"; nocase; pcre:"/(Basic|Deserialization|TomcatBypass|GroovyBypass|WebsphereBypass)\/[a-z0-9]{3}/i"; sid:7700319; rev:2;)
 
-alert tcp any any -> any any (msg:"SC LDAP Request Search Suspicious Object Possible Exploit kit (marshalsec)"; flow:to_server,established; content:"|30|"; depth:1; content:"|02 01 02 63|"; depth:8; offset:1; content:"objectClass"; nocase; pcre:"/exploit|backdoor|trojan|shell|beacon|fuck|shit|justfor|hack/i"; sid:7700313; rev:7;)
+alert tcp any any -> any any (msg:"SC LDAP Request Search Suspicious Object Possible Exploit kit (marshalsec)"; flow:to_server,established; content:"|30|"; depth:1; content:"|02 01 02 63|"; depth:8; offset:1; content:"objectClass"; nocase; content:!"OU="; nocase; content:!"DC="; nocase; content:!"CN="; nocase; pcre:"/exploit|backdoor|trojan|shell|beacon|fuck|shit|justfor|hack/i"; sid:7700313; rev:8;)
 
 # 远程下载.class文件，LDAP重定向到恶意HTTP资源，远程下载class木马
 
