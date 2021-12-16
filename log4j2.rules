@@ -1,18 +1,32 @@
 # 常见的log4j2利用exp以及变形，无误报
 
-alert ip any any -> any any (msg:"SC JNDI Injection RCE Attempt"; flow:to_server,established; content:"jndi"; nocase; pcre:"/(\$|%24)(\(|\[|{|%5b|%7B).{0,10}jndi.{0,10}(:|%3a).{0,10}(\/|%2f){2}.{0,30}\..{0,30}(\)|\]|}|%5d|%7D)/i"; sid:7700307; rev:13;)
+alert tcp any any -> any any (msg:"SC JNDI Injection RCE Attempt (TCP)"; flow:to_server,established; content:"jndi"; nocase; pcre:"/(\$|%24)(\(|\[|{|%5b|%7B).{0,10}jndi.{0,10}(:|%3a).{0,10}(\/|%2f){2}.{0,30}\..{0,30}(\)|\]|}|%5d|%7D)/i"; sid:7700307; rev:14;)
 
-alert ip any any -> any any (msg:"SC JNDI Injection RCE Attempt M1"; flow:to_server,established; content:"%24%7B"; nocase; content:"%3A-"; nocase; pcre:"/(\$|%24)({|%7B).{0,300}(\$|%24)({|%7B).{0,100}(:|%3A)-[jndilaprmsn]{1,5}.{0,100}(\/|%2F){2}.{0,100}\..{0,100}(}|%7D)/i"; sid:7700315; rev:6;)
+alert tcp any any -> any any (msg:"SC JNDI Injection RCE Attempt M1 (TCP)"; flow:to_server,established; content:"%24%7B"; nocase; content:"%3A-"; nocase; pcre:"/(\$|%24)({|%7B).{0,300}(\$|%24)({|%7B).{0,100}(:|%3A)-[jndilaprmsn]{1,5}.{0,100}(\/|%2F){2}.{0,100}\..{0,100}(}|%7D)/i"; sid:7700315; rev:7;)
 
-alert ip any any -> any any (msg:"SC JNDI Injection RCE Attempt M2"; flow:to_server,established; content:"${"; nocase; content:":-"; nocase; pcre:"/(\$|%24)({|%7B).{0,300}(\$|%24)({|%7B).{0,100}(:|%3A)-[jndilaprmsn]{1,5}.{0,100}(\/|%2F){2}.{0,100}\..{0,100}(}|%7D)/i"; sid:7700316; rev:6;)
+alert tcp any any -> any any (msg:"SC JNDI Injection RCE Attempt M2 (TCP)"; flow:to_server,established; content:"${"; nocase; content:":-"; nocase; pcre:"/(\$|%24)({|%7B).{0,300}(\$|%24)({|%7B).{0,100}(:|%3A)-[jndilaprmsn]{1,5}.{0,100}(\/|%2F){2}.{0,100}\..{0,100}(}|%7D)/i"; sid:7700316; rev:7;)
 
-alert ip any any -> any any (msg:"SC JNDI Injection RCE Attempt M3"; flow:to_server,established; content:"lower"; nocase; pcre:"/(\$|%24)({|%7B).{0,300}(\$|%24)({|%7B)(lower|upper)(:|%3A)[jndilaprmsn]{1,5}.{0,100}(\/|%2F){2}.{0,100}\..{0,100}(}|%7D)/i"; sid:7700317; rev:4;)
+alert tcp any any -> any any (msg:"SC JNDI Injection RCE Attempt M3 (TCP)"; flow:to_server,established; content:"lower"; nocase; pcre:"/(\$|%24)({|%7B).{0,300}(\$|%24)({|%7B)(lower|upper)(:|%3A)[jndilaprmsn]{1,5}.{0,100}(\/|%2F){2}.{0,100}\..{0,100}(}|%7D)/i"; sid:7700317; rev:5;)
 
-alert ip any any -> any any (msg:"SC JNDI Injection RCE Attempt M4"; flow:to_server,established; content:"upper"; nocase; pcre:"/(\$|%24)({|%7B).{0,300}(\$|%24)({|%7B)(lower|upper)(:|%3A)[jndilaprmsn]{1,5}.{0,100}(\/|%2F){2}.{0,100}\..{0,100}(}|%7D)/i"; sid:7700318; rev:4;)
+alert tcp any any -> any any (msg:"SC JNDI Injection RCE Attempt M4 (TCP)"; flow:to_server,established; content:"upper"; nocase; pcre:"/(\$|%24)({|%7B).{0,300}(\$|%24)({|%7B)(lower|upper)(:|%3A)[jndilaprmsn]{1,5}.{0,100}(\/|%2F){2}.{0,100}\..{0,100}(}|%7D)/i"; sid:7700318; rev:5;)
 
-alert ip any any -> any any (msg:"SC JNDI Injection RCE Attempt M5"; flow:to_server,established; content:"${"; nocase; content:":-"; nocase; pcre:"/(\$|%24)({|%7B).{0,300}[jndilaprmsn]{0,5}(\$|%24)({|%7B)[a-z0-9%:\-].{0,100}(:|%3A)-[jndilaprmsn]{0,5}(}|%7D).{0,100}(:|%3A)(\/|%2F){2}.{0,100}\..{0,100}(}|%7D)/i"; sid:7700320; rev:1;)
+alert tcp any any -> any any (msg:"SC JNDI Injection RCE Attempt M5 (TCP)"; flow:to_server,established; content:"${"; nocase; content:":-"; nocase; pcre:"/(\$|%24)({|%7B).{0,300}[jndilaprmsn]{0,5}(\$|%24)({|%7B)[a-z0-9%:\-].{0,100}(:|%3A)-[jndilaprmsn]{0,5}(}|%7D).{0,100}(:|%3A)(\/|%2F){2}.{0,100}\..{0,100}(}|%7D)/i"; sid:7700320; rev:2;)
 
-alert ip any any -> any any (msg:"SC JNDI Injection RCE Attempt M6"; flow:to_server,established; content:"%24%7B"; nocase; content:"%3A-"; nocase; pcre:"/(\$|%24)({|%7B).{0,300}[jndilaprmsn]{0,5}(\$|%24)({|%7B)[a-z0-9%:\-].{0,100}(:|%3A)-[jndilaprmsn]{0,5}(}|%7D).{0,100}(:|%3A)(\/|%2F){2}.{0,100}\..{0,100}(}|%7D)/i"; sid:7700321; rev:1;)
+alert tcp any any -> any any (msg:"SC JNDI Injection RCE Attempt M6 (TCP)"; flow:to_server,established; content:"%24%7B"; nocase; content:"%3A-"; nocase; pcre:"/(\$|%24)({|%7B).{0,300}[jndilaprmsn]{0,5}(\$|%24)({|%7B)[a-z0-9%:\-].{0,100}(:|%3A)-[jndilaprmsn]{0,5}(}|%7D).{0,100}(:|%3A)(\/|%2F){2}.{0,100}\..{0,100}(}|%7D)/i"; sid:7700321; rev:2;)
+
+alert udp any any -> any any (msg:"SC JNDI Injection RCE Attempt (UDP)"; content:"jndi"; nocase; pcre:"/(\$|%24)(\(|\[|{|%5b|%7B).{0,10}jndi.{0,10}(:|%3a).{0,10}(\/|%2f){2}.{0,30}\..{0,30}(\)|\]|}|%5d|%7D)/i"; sid:7700322; rev:14;)
+
+alert udp any any -> any any (msg:"SC JNDI Injection RCE Attempt M1 (UDP)"; content:"%24%7B"; nocase; content:"%3A-"; nocase; pcre:"/(\$|%24)({|%7B).{0,300}(\$|%24)({|%7B).{0,100}(:|%3A)-[jndilaprmsn]{1,5}.{0,100}(\/|%2F){2}.{0,100}\..{0,100}(}|%7D)/i"; sid:7700323; rev:7;)
+
+alert udp any any -> any any (msg:"SC JNDI Injection RCE Attempt M2 (UDP)"; content:"${"; nocase; content:":-"; nocase; pcre:"/(\$|%24)({|%7B).{0,300}(\$|%24)({|%7B).{0,100}(:|%3A)-[jndilaprmsn]{1,5}.{0,100}(\/|%2F){2}.{0,100}\..{0,100}(}|%7D)/i"; sid:7700324; rev:7;)
+
+alert udp any any -> any any (msg:"SC JNDI Injection RCE Attempt M3 (UDP)"; content:"lower"; nocase; pcre:"/(\$|%24)({|%7B).{0,300}(\$|%24)({|%7B)(lower|upper)(:|%3A)[jndilaprmsn]{1,5}.{0,100}(\/|%2F){2}.{0,100}\..{0,100}(}|%7D)/i"; sid:7700325; rev:5;)
+
+alert udp any any -> any any (msg:"SC JNDI Injection RCE Attempt M4 (UDP)"; content:"upper"; nocase; pcre:"/(\$|%24)({|%7B).{0,300}(\$|%24)({|%7B)(lower|upper)(:|%3A)[jndilaprmsn]{1,5}.{0,100}(\/|%2F){2}.{0,100}\..{0,100}(}|%7D)/i"; sid:7700326; rev:5;)
+
+alert udp any any -> any any (msg:"SC JNDI Injection RCE Attempt M5 (UDP)"; content:"${"; nocase; content:":-"; nocase; pcre:"/(\$|%24)({|%7B).{0,300}[jndilaprmsn]{0,5}(\$|%24)({|%7B)[a-z0-9%:\-].{0,100}(:|%3A)-[jndilaprmsn]{0,5}(}|%7D).{0,100}(:|%3A)(\/|%2F){2}.{0,100}\..{0,100}(}|%7D)/i"; sid:7700327; rev:2;)
+
+alert udp any any -> any any (msg:"SC JNDI Injection RCE Attempt M6 (UDP)"; content:"%24%7B"; nocase; content:"%3A-"; nocase; pcre:"/(\$|%24)({|%7B).{0,300}[jndilaprmsn]{0,5}(\$|%24)({|%7B)[a-z0-9%:\-].{0,100}(:|%3A)-[jndilaprmsn]{0,5}(}|%7D).{0,100}(:|%3A)(\/|%2F){2}.{0,100}\..{0,100}(}|%7D)/i"; sid:7700328; rev:2;)
 
 # 通过LDAP协议搜索恶意对象，利用成功后连接伪造的LDAP服务请求恶意对象，两个利用工具的监控：JNDIExploit，marshalsec
 alert tcp any any -> any any (msg:"SC LDAP Request Search Suspicious Object Possible Exploit kit (JNDIExploit)"; flow:to_server,established; content:"|30|"; depth:1; content:"|02 01 02 63|"; depth:8; offset:1; content:"objectClass"; nocase; pcre:"/(Basic|Deserialization|TomcatBypass|GroovyBypass|WebsphereBypass)\/[a-z0-9]{3}/i"; sid:7700319; rev:2;)
